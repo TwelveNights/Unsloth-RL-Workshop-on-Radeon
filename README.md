@@ -25,14 +25,15 @@ of driving training code. Studio's web UI trains with supervised fine-tuning
 (LoRA, QLoRA, full fine-tune, continued pretraining) and has no GRPO / reward
 functions, so the Sudoku task is replaced with one SFT suits: turning a messy
 customer support message into a ticket with a fixed JSON schema. Attendees
-train `unsloth/Qwen3.5-2B` in Studio (60 steps, about a minute on an MI300X),
-compare base and fine-tuned side by side in Studio's Chat, then score both on
-held-out tickets in the notebook.
+start training `unsloth/Qwen3.5-2B` in Studio first (30 steps: about 5 minutes
+on a Ryzen AI Max+, under a minute on an MI300X), look at the data in the
+notebook while it trains, compare base and fine-tuned side by side in Studio's
+Chat, then score both on held-out tickets in the notebook.
 
 | File | Use |
 |---|---|
 | `Unsloth_Studio_Support_Tickets.ipynb` | The hands-on notebook: data, step-by-step Studio walkthrough with screenshots, scoring, export. |
-| `docs/Unsloth_Studio_Support_Tickets-executed-mi300x.ipynb` | The same notebook run end to end on an MI300X against a Studio-trained adapter: fine-tuned 100% exact on 30 held-out tickets, versus 70% for the base model with a full schema prompt. |
+| `docs/Unsloth_Studio_Support_Tickets-executed-mi300x.ipynb` | The same notebook run end to end on an MI300X against a 30-step Studio-trained adapter: fine-tuned 97% exact on 30 held-out tickets (29 of 30), versus 70% for the base model with a full schema prompt. On a Ryzen AI Max+ (Radeon 8065S): 97% versus 63%. |
 | `docs/AMD-Unsloth-Studio-Fine-tuning.pdf` / `.pptx` | The deck: the GRPO deck's concepts, with Part 2 rebuilt around Studio. Same PDF/PPTX rule as above. |
 | `docs/studio-screenshots/` | Studio screenshots used by the notebook and deck. |
 | `data/support_tickets_{train,eval}.jsonl` | 1,000 training and 100 held-out tickets, chat (`messages`) format. |
@@ -50,9 +51,14 @@ Facilitator notes, from testing on Studio 2026.10.4 / ROCm:
 - **Chat format, not Alpaca.** Studio trains Alpaca rows with a generic
   `### Instruction / ### Response` prompt rather than the model's chat template,
   so an Alpaca-trained model is tested in Chat on a prompt it never saw.
-- **First training run compiles a kernel.** Qwen3.5 needs `causal-conv1d`, which
-  Studio builds from source for ROCm on first use (several minutes). Do one run
-  on each machine image before the event.
+- **The `causal-conv1d` kernel.** Qwen3.5 uses it, and Studio builds it from
+  source for ROCm on first use (several minutes, and it needs `hipcc`). The fleet
+  image (`windows-image/workshops/unsloth-studio`) pre-builds it; a native
+  Windows install has no build and uses a slower PyTorch fallback instead.
+- **30 steps, not 60.** The loss is flat by step 15-25. On a Radeon 8065S, 30
+  steps (about 4.7 minutes) got 29 of 30 held-out tickets exactly right and 60
+  steps (9.3 minutes) all 30. Most of the time is the hardware; on native
+  Windows, Studio also disables `torch.compile`, so that runs on fallbacks too.
 - **Training fails at step 0 with `'KernelMetadata' object has no attribute
   'cluster_dims'`.** Studio's installer put upstream `triton` over
   `pytorch-triton-rocm` on a ROCm 6.4 host. Uninstall `triton` and
