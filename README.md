@@ -25,15 +25,21 @@ of driving training code. Studio's web UI trains with supervised fine-tuning
 (LoRA, QLoRA, full fine-tune, continued pretraining) and has no GRPO / reward
 functions, so the Sudoku task is replaced with one SFT suits: turning a messy
 customer support message into a ticket with a fixed JSON schema. Attendees
-start training `unsloth/Qwen3.5-2B` in Studio first (30 steps: about 5 minutes
+start training `unsloth/Qwen3.5-2B` in Studio first (30 steps: 3 to 5 minutes
 on a Ryzen AI Max+, under a minute on an MI300X), look at the data in the
 notebook while it trains, compare base and fine-tuned side by side in Studio's
 Chat, then score both on held-out tickets in the notebook.
 
+Everything runs on the attendee's own machine: Studio at `localhost:8890`
+(password `RadeonUnslothStudio`) and the notebook in JupyterLab at
+`localhost:8888`, both installed natively on Windows. The GPU check uses
+`hipInfo` and Task Manager, since `rocminfo` and `rocm-smi` do not exist on
+Windows and Studio's GPU Monitor shows only memory there.
+
 | File | Use |
 |---|---|
 | `Unsloth_Studio_Support_Tickets.ipynb` | The hands-on notebook: data, step-by-step Studio walkthrough with screenshots, scoring, export. |
-| `docs/Unsloth_Studio_Support_Tickets-executed-mi300x.ipynb` | The same notebook run end to end on an MI300X against a 30-step Studio-trained adapter: fine-tuned 97% exact on 30 held-out tickets (29 of 30), versus 70% for the base model with a full schema prompt. On a Ryzen AI Max+ (Radeon 8065S): 97% versus 63%. |
+| `docs/Unsloth_Studio_Support_Tickets-executed-ryzen-ai-max.ipynb` | The same notebook run end to end on a Ryzen AI Max+ (Radeon 8065S), natively on Windows, against a 30-step Studio-trained adapter: fine-tuned 97% exact on 30 held-out tickets (29 of 30), versus 63% for the base model with a full schema prompt. (An MI300X run scored 97% versus 70%.) |
 | `docs/AMD-Unsloth-Studio-Fine-tuning.pdf` / `.pptx` | The deck: the GRPO deck's concepts, with Part 2 rebuilt around Studio. Same PDF/PPTX rule as above. |
 | `docs/studio-screenshots/` | Studio screenshots used by the notebook and deck. |
 | `data/support_tickets_{train,eval}.jsonl` | 1,000 training and 100 held-out tickets, chat (`messages`) format. |
