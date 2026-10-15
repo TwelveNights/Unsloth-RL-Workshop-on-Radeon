@@ -31,7 +31,7 @@ notebook while it trains, compare base and fine-tuned side by side in Studio's
 Chat, then score both on held-out tickets in the notebook.
 
 Everything runs on the attendee's own machine: Studio at `localhost:8890`
-(password `RadeonUnslothStudio`) and the notebook in JupyterLab at
+(password `RyzenUnslothStudio`) and the notebook in JupyterLab at
 `localhost:8888`, both installed natively on Windows. The GPU check uses
 `hipInfo` and Task Manager, since `rocminfo` and `rocm-smi` do not exist on
 Windows and Studio's GPU Monitor shows only memory there.
