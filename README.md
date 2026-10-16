@@ -44,7 +44,7 @@ Windows and Studio's GPU Monitor shows only memory there.
 | `docs/studio-screenshots/` | Studio screenshots used by the notebook and deck. |
 | `data/support_tickets_{train,eval}.jsonl` | 1,000 training and 100 held-out tickets, chat (`messages`) format. |
 | `scripts/generate_support_ticket_dataset.py` | Regenerates the data deterministically. |
-| `scripts/score_tickets.py` | Base vs schema-prompted vs fine-tuned scoring, shared with the notebook. |
+| `scripts/score_tickets.py` | Base vs schema-prompted vs fine-tuned scoring, shared with the notebook. Loads the model with plain Transformers + PEFT, not Unsloth: importing Unsloth compiles GPU kernels on the fly, which fails on Windows machines without a C compiler. |
 
 Facilitator notes, from testing on Studio 2026.10.4 / ROCm:
 
