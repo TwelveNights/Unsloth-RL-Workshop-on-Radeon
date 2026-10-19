@@ -40,7 +40,7 @@ Windows and Studio's GPU Monitor shows only memory there.
 |---|---|
 | `Unsloth_Studio_Support_Tickets.ipynb` | The hands-on notebook: data, step-by-step Studio walkthrough with screenshots, scoring, export. |
 | `docs/Unsloth_Studio_Support_Tickets-executed-ryzen-ai-max.ipynb` | The same notebook run end to end on a Ryzen AI Max+ (Radeon 8065S), natively on Windows, against a 30-step Studio-trained adapter: fine-tuned 97% exact on 30 held-out tickets (29 of 30), versus 63% for the base model with a full schema prompt. (An MI300X run scored 97% versus 70%.) |
-| `docs/AMD-Unsloth-Studio-Fine-tuning.pdf` / `.pptx` | The deck: the GRPO deck's concepts, with Part 2 rebuilt around Studio. Same PDF/PPTX rule as above. |
+| `docs/AMD-Unsloth-Studio-Fine-tuning.pdf` / `.pptx` | The deck: the GRPO deck's concepts plus how an SFT training step works and how to read a training run, Part 2 rebuilt around Studio, and stretch challenges for early finishers. `scripts/update_deck_sft_challenges.py` added the SFT and challenge slides. Same PDF/PPTX rule as above. |
 | `docs/studio-screenshots/` | Studio screenshots used by the notebook and deck. |
 | `data/support_tickets_{train,eval}.jsonl` | 1,000 training and 100 held-out tickets, chat (`messages`) format. |
 | `scripts/generate_support_ticket_dataset.py` | Regenerates the data deterministically. |
