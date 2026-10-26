@@ -3,6 +3,15 @@ The attached presentation explains the why and how of fine-tuning. The notebook 
 The learning parameters were adjusted to complete a training run in 20-30 minutes,
 for a workshop-length presentation.
 
+## Bonus: SFT notebook
+
+`Gemma4_(E2B)_SFT_Sudoku_Board_Parsing.ipynb` is a short (about 10 minute) extra for
+people who finish early. It fine-tunes the same Gemma 4 E2B with supervised fine-tuning
+to turn an 81-character Sudoku string into the `board` list the GRPO notebook uses, and
+scores the model on held-out puzzles before and after. Its dataset is in `data/`
+(1,000 train and 50 test examples, under 1 MB); `python data/make_sudoku_sft.py`
+regenerates it.
+
 ## Slides
 
 The deck for the talk is 19 slides on the AMD corporate template, with a notebook
