@@ -3,10 +3,20 @@ The attached presentation explains the why and how of fine-tuning. The notebook 
 The learning parameters were adjusted to complete a training run in 20-30 minutes,
 for a workshop-length presentation.
 
+The notebook keeps the RL-specific parts in view (a toy GRPO loop that runs on the CPU, the prompt,
+the reward functions, the trainer) and imports the rest from two files next to it, so run it from a
+clone of this repository:
+
+| File | Contents |
+|---|---|
+| `sudoku_env.py` | The Sudoku game and the sandboxed harness that plays model-written strategies |
+| `workshop_utils.py` | Loading Gemma 4 with LoRA, generation, the prompt dataset, saving and export |
+
 ## Bonus: SFT notebook
 
 `Gemma4_(E2B)_SFT_Sudoku_Board_Parsing.ipynb` is a short (about 10 minute) extra for
-people who finish early. It fine-tunes the same Gemma 4 E2B with supervised fine-tuning
+people who finish early. It starts with a toy SFT loop on the CPU (the same toy model as the
+main notebook's GRPO loop, trained on a label instead of a reward), then fine-tunes the same Gemma 4 E2B with supervised fine-tuning
 to turn an 81-character Sudoku string into the `board` list the GRPO notebook uses, and
 scores the model on held-out puzzles before and after. Its dataset is in `data/`
 (1,000 train and 50 test examples, under 1 MB); `python data/make_sudoku_sft.py`
