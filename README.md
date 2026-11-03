@@ -24,10 +24,11 @@ regenerates it.
 
 ## Slides
 
-The deck for the talk is 19 slides on the AMD corporate template, with a notebook
+The deck for the talk is 21 slides on the AMD corporate template, with a notebook
 access slide up front, two section dividers ("Part 1: The Concepts" and "Part 2:
 Hands-On") separating the theory from the hands-on walkthrough, and full-bleed AMD
-background imagery.
+background imagery. It ends with two AI DevDay World Tour event slides: the Jenga
+swag giveaway and the session feedback survey (QR code).
 
 | File | Use |
 |---|---|
