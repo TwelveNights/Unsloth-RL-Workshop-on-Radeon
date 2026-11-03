@@ -11,6 +11,7 @@ import copy
 import json
 import os
 import random
+import re
 
 from unsloth import check_python_modules, create_locked_down_function, execute_with_time_limit
 
@@ -255,15 +256,23 @@ def extract_function(text):
     return None
 
 
+_ANSI_COLOR = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def _visible_len(text):
+    """Length of text as displayed, ignoring the color codes SudokuGame.pretty() adds."""
+    return len(_ANSI_COLOR.sub("", text))
+
+
 def print_side_by_side(left, right, gap = "   "):
     """Print two multi-line blocks of text side by side, to save vertical space."""
     left_lines = left.split("\n")
     right_lines = right.split("\n")
-    width = max(len(line) for line in left_lines)
+    width = max(_visible_len(line) for line in left_lines)
     for i in range(max(len(left_lines), len(right_lines))):
         l = left_lines[i] if i < len(left_lines) else ""
         r = right_lines[i] if i < len(right_lines) else ""
-        print(l.ljust(width) + gap + r)
+        print(l + " " * (width - _visible_len(l)) + gap + r)
 
 
 def play_strategy(function, difficulty = 40, seed = None):
