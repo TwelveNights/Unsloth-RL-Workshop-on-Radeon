@@ -1,5 +1,5 @@
 # Replaces $HOME\local-ai-workshop\unsloth\workshop with the unsloth-studio-workshop branch
-# and puts an "Update Workshop" shortcut on the desktop that runs this script again.
+# and puts an "Update Workshop" shortcut on the desktop that runs a saved copy of this script.
 # Run on a workshop machine with:
 #   irm https://raw.githubusercontent.com/TwelveNights/Unsloth-RL-Workshop-on-Radeon/unsloth-studio-workshop/install.ps1 | iex
 & {
@@ -41,9 +41,13 @@
     if ($LASTEXITCODE -ge 8) { throw "Copying into $d\workshop failed (robocopy exit code $LASTEXITCODE)." }
     Remove-Folder $x
 
+    # The shortcut runs a saved copy of this script. A shortcut that downloads a script and
+    # runs it straight from memory is what malware shortcuts do, and Defender flags it.
+    $u = "$d\update-workshop.ps1"
+    Invoke-WebRequest $url -OutFile $u
     $lnk = (New-Object -ComObject WScript.Shell).CreateShortcut("$([Environment]::GetFolderPath('Desktop'))\Update Workshop.lnk")
     $lnk.TargetPath = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
-    $lnk.Arguments = "-NoExit -NoProfile -ExecutionPolicy Bypass -Command `"irm $url | iex`""
+    $lnk.Arguments = "-NoExit -NoProfile -ExecutionPolicy RemoteSigned -File `"$u`""
     $lnk.Description = 'Replace the workshop folder with the latest version from GitHub'
     $lnk.Save()
 

@@ -8,12 +8,57 @@ stay in the notebook.
 from dataclasses import dataclass, field
 from typing import Callable, List, Optional
 import copy
+import ctypes
+import functools
 import json
 import os
 import random
 import re
+import signal
+import threading
 
 from unsloth import check_python_modules, create_locked_down_function, execute_with_time_limit
+
+
+class _StrategyTimeout(BaseException):
+    """Raised inside a timed-out strategy thread. A BaseException, so the harness's
+    `except Exception` does not catch it and keep the runaway strategy going."""
+
+
+def _thread_time_limit(seconds):
+    """Windows stand-in for Unsloth's execute_with_time_limit, which needs SIGALRM.
+
+    Runs the call in a worker thread. If it misses the deadline, the caller gets a
+    TimeoutError and the worker is stopped by raising _StrategyTimeout in it, so a
+    model-written infinite loop does not keep using the CPU for the rest of training.
+    """
+    def decorator(fn):
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            result = {}
+
+            def target():
+                try:
+                    result["value"] = fn(*args, **kwargs)
+                except BaseException as e:
+                    result["error"] = e
+
+            worker = threading.Thread(target = target, daemon = True)
+            worker.start()
+            worker.join(seconds)
+            if worker.is_alive():
+                ctypes.pythonapi.PyThreadState_SetAsyncExc(
+                    ctypes.c_ulong(worker.ident), ctypes.py_object(_StrategyTimeout))
+                worker.join(1)
+                raise TimeoutError(f"Timed out after {seconds} seconds")
+            if "error" in result:
+                raise result["error"]
+            return result["value"]
+        return wrapper
+    return decorator
+
+
+time_limit = execute_with_time_limit if hasattr(signal, "SIGALRM") else _thread_time_limit
 
 
 def _is_valid_placement(board: List[List[int]], row: int, col: int, num: int) -> bool:
@@ -237,7 +282,7 @@ def _execute_strategy(strategy: Callable, game: SudokuGame):
 
 
 # A 5-second limit keeps the session brief; upstream Unsloth uses 10 seconds.
-@execute_with_time_limit(5)
+@time_limit(5)
 def execute_strategy(strategy: Callable, game: SudokuGame):
     """Execute strategy with a 5-second time limit."""
     return _execute_strategy(strategy, game)
