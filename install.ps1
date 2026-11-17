@@ -14,9 +14,19 @@
     $z = "$env:TEMP\unsloth-workshop.zip"
     $x = "$d\Unsloth-RL-Workshop-on-Radeon-unsloth-studio-workshop"
 
+    # Git marks its object files read-only and .git hidden, and Remove-Item refuses both,
+    # so clear those flags on everything under the folder before deleting it.
+    function Remove-Folder($p) {
+        if (-not (Test-Path $p)) { return }
+        $flags = [IO.FileAttributes]'ReadOnly, Hidden, System'
+        Get-ChildItem $p -Recurse -Force | ForEach-Object { $_.Attributes = $_.Attributes -band -bnot $flags }
+        Remove-Item -Recurse $p
+    }
+
     # Download first, so a failed download leaves the old folder in place.
     Invoke-WebRequest $zipUrl -OutFile $z
-    foreach ($p in $x, "$d\workshop.old") { if (Test-Path $p) { Remove-Item -Recurse $p } }
+    Remove-Folder $x
+    Remove-Folder "$d\workshop.old"
     Expand-Archive $z $d
     Remove-Item $z
 
@@ -24,10 +34,10 @@
     # Explorer window) holds the folder open, where a delete would stop halfway.
     if (Test-Path "$d\workshop") {
         try { Rename-Item "$d\workshop" workshop.old }
-        catch { Remove-Item -Recurse $x; throw "Close Jupyter and anything else using $d\workshop, then run the update again." }
+        catch { Remove-Folder $x; throw "Close Jupyter and anything else using $d\workshop, then run the update again." }
     }
     Rename-Item $x workshop
-    if (Test-Path "$d\workshop.old") { Remove-Item -Recurse "$d\workshop.old" }
+    Remove-Folder "$d\workshop.old"
 
     $lnk = (New-Object -ComObject WScript.Shell).CreateShortcut("$([Environment]::GetFolderPath('Desktop'))\Update Workshop.lnk")
     $lnk.TargetPath = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
