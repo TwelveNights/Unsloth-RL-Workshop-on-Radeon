@@ -48,7 +48,9 @@ def load_model(model_name = "unsloth/gemma-4-E2B-it", max_seq_length = 4096, lor
         use_gradient_checkpointing = "unsloth", # Reduces memory usage
         random_state = 3407,
     )
-    model.config._attn_implementation = "sdpa" # Use this to disable flash attention to avoid OOM
+    # sdpa avoids flash attention's extra memory. On Windows, PyTorch's ROCm sdpa kernel returns
+    # NaN logits for Gemma 4 (the model writes gibberish), so eager attention is used there.
+    model.config._attn_implementation = "eager" if os.name == "nt" else "sdpa"
     return model, tokenizer
 
 
