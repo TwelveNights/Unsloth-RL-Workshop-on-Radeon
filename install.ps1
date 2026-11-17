@@ -26,30 +26,40 @@
         Remove-Item -Recurse $p
     }
 
-    # Download first, so a failed download leaves the old folder in place.
-    Invoke-WebRequest $zipUrl -OutFile $z
-    Remove-Folder $x
-    Remove-Folder "$d\workshop.old"  # left behind by earlier versions of this script
-    Expand-Archive $z $d
-    Remove-Item $z
+    # Run from the desktop shortcut, the window closes by itself after a successful update
+    # but stays open on an error so it can be read. Pasted into a console, errors are just shown.
+    $fromShortcut = [bool]$PSCommandPath
+    try {
+        # Download first, so a failed download leaves the old folder in place.
+        Invoke-WebRequest $zipUrl -OutFile $z
+        Remove-Folder $x
+        Remove-Folder "$d\workshop.old"  # left behind by earlier versions of this script
+        Expand-Archive $z $d
+        Remove-Item $z
 
-    # Mirror into the existing folder rather than replacing it: Jupyter's server and kernels
-    # use it as their working directory, which blocks renaming or deleting the folder itself
-    # but not overwriting the files in it. /MIR also deletes files that are not in the branch.
-    if (Test-Path "$d\workshop") { Clear-Flags "$d\workshop" }
-    robocopy $x "$d\workshop" /MIR /IS /R:2 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
-    if ($LASTEXITCODE -ge 8) { throw "Copying into $d\workshop failed (robocopy exit code $LASTEXITCODE)." }
-    Remove-Folder $x
+        # Mirror into the existing folder rather than replacing it: Jupyter's server and kernels
+        # use it as their working directory, which blocks renaming or deleting the folder itself
+        # but not overwriting the files in it. /MIR also deletes files that are not in the branch.
+        if (Test-Path "$d\workshop") { Clear-Flags "$d\workshop" }
+        robocopy $x "$d\workshop" /MIR /IS /R:2 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
+        if ($LASTEXITCODE -ge 8) { throw "Copying into $d\workshop failed (robocopy exit code $LASTEXITCODE)." }
+        Remove-Folder $x
 
-    # The shortcut runs a saved copy of this script. A shortcut that downloads a script and
-    # runs it straight from memory is what malware shortcuts do, and Defender flags it.
-    $u = "$d\update-workshop.ps1"
-    Invoke-WebRequest $url -OutFile $u
-    $lnk = (New-Object -ComObject WScript.Shell).CreateShortcut("$([Environment]::GetFolderPath('Desktop'))\Update Workshop.lnk")
-    $lnk.TargetPath = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
-    $lnk.Arguments = "-NoExit -NoProfile -ExecutionPolicy RemoteSigned -File `"$u`""
-    $lnk.Description = 'Replace the workshop folder with the latest version from GitHub'
-    $lnk.Save()
+        # The shortcut runs a saved copy of this script. A shortcut that downloads a script and
+        # runs it straight from memory is what malware shortcuts do, and Defender flags it.
+        $u = "$d\update-workshop.ps1"
+        Invoke-WebRequest $url -OutFile $u
+        $lnk = (New-Object -ComObject WScript.Shell).CreateShortcut("$([Environment]::GetFolderPath('Desktop'))\Update Workshop.lnk")
+        $lnk.TargetPath = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
+        $lnk.Arguments = "-NoProfile -ExecutionPolicy RemoteSigned -File `"$u`""
+        $lnk.Description = 'Replace the workshop folder with the latest version from GitHub'
+        $lnk.Save()
 
-    Write-Host "Workshop installed to $d\workshop"
+        Write-Host "Workshop installed to $d\workshop"
+        if ($fromShortcut) { Start-Sleep 3 }
+    } catch {
+        if (-not $fromShortcut) { throw }
+        Write-Host "Update failed: $_" -ForegroundColor Red
+        Read-Host 'Press Enter to close'
+    }
 }
