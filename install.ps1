@@ -7,13 +7,15 @@
     $ProgressPreference = 'SilentlyContinue'  # the progress bar makes Invoke-WebRequest very slow on PowerShell 5.1
     [Net.ServicePointManager]::SecurityProtocol = 'Tls12'
 
+    # A mirror that serves this script rewrites these two lines to point at itself.
     $url = 'https://raw.githubusercontent.com/TwelveNights/Unsloth-RL-Workshop-on-Radeon/unsloth-studio-workshop/install.ps1'
+    $zipUrl = 'https://github.com/TwelveNights/Unsloth-RL-Workshop-on-Radeon/archive/refs/heads/unsloth-studio-workshop.zip'
     $d = "$HOME\local-ai-workshop\unsloth"
     $z = "$env:TEMP\unsloth-workshop.zip"
     $x = "$d\Unsloth-RL-Workshop-on-Radeon-unsloth-studio-workshop"
 
     # Download first, so a failed download leaves the old folder in place.
-    Invoke-WebRequest https://github.com/TwelveNights/Unsloth-RL-Workshop-on-Radeon/archive/refs/heads/unsloth-studio-workshop.zip -OutFile $z
+    Invoke-WebRequest $zipUrl -OutFile $z
     foreach ($p in $x, "$d\workshop.old") { if (Test-Path $p) { Remove-Item -Recurse $p } }
     Expand-Archive $z $d
     Remove-Item $z
